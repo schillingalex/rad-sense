@@ -1,7 +1,7 @@
 #include "radiation_dose.h"
 
-#include<stddef.h>
-#include<math.h>
+#include <stddef.h>
+#include <math.h>
 
 rad_sense_dose_update_status_t rad_sense_dose_update(double dose_rate_mGy_per_hour,
                                                      double elapsed_seconds,
