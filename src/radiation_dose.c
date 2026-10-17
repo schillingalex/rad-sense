@@ -7,6 +7,9 @@ rad_sense_dose_update_status_t rad_sense_dose_update(double dose_rate_mGy_per_ho
                                                      double elapsed_seconds,
                                                      double *accumulated_dose_mGy)
 {
+    double dose_increment_mGy;
+    double updated_accumulated_dose_mGy;
+
     // Negative dose rates do not make sense.
     if (!isfinite(dose_rate_mGy_per_hour) || dose_rate_mGy_per_hour < 0)
     {
@@ -28,8 +31,15 @@ rad_sense_dose_update_status_t rad_sense_dose_update(double dose_rate_mGy_per_ho
         return RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT;
     }
 
-    double dose_increment_mGy = dose_rate_mGy_per_hour * elapsed_seconds / 3600.;
-    double updated_accumulated_dose_mGy = *accumulated_dose_mGy + dose_increment_mGy;
+    if (dose_rate_mGy_per_hour > elapsed_seconds)
+    {
+        dose_increment_mGy = elapsed_seconds / 3600. * dose_rate_mGy_per_hour;
+    }
+    else
+    {
+        dose_increment_mGy = dose_rate_mGy_per_hour / 3600. * elapsed_seconds;
+    }
+    updated_accumulated_dose_mGy = *accumulated_dose_mGy + dose_increment_mGy;
 
     // This also catches overflows in the dose_increment_mGy computation.
     if (!isfinite(updated_accumulated_dose_mGy))
