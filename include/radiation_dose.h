@@ -14,9 +14,9 @@ typedef enum
 /**
  * Adds dose accumulated over an elapsed interval to a running tally.
  *
- * @param dose_rate_mGy_per_hour Radiation dose rate (mGy/hour), non-negative.
- * @param elapsed_seconds        Elapsed time (s), non-negative.
- * @param accumulated_dose_mGy   In/out accumulated dose (mGy), non-negative.
+ * @param dose_rate_mGy_per_hour Radiation dose rate (mGy/hour), non-negative, finite.
+ * @param elapsed_seconds        Elapsed time (s), non-negative, finite.
+ * @param accumulated_dose_mGy   In/out accumulated dose (mGy), not NULL, non-negative, finite.
  * @return rad_sense_dose_update_status_t signifying the status,
  *         such that the caller can differentiate between a success,
  *         a failure because of invalid arguments,
