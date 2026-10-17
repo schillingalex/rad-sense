@@ -10,38 +10,40 @@ rad_sense_dose_update_status_t rad_sense_dose_update(double dose_rate_mGy_per_ho
     double dose_increment_mGy;
     double updated_accumulated_dose_mGy;
 
-    // Negative dose rates do not make sense.
-    if (!isfinite(dose_rate_mGy_per_hour) || dose_rate_mGy_per_hour < 0)
+    // Dose rate outside allowed value range.
+    if (!isfinite(dose_rate_mGy_per_hour)
+        || dose_rate_mGy_per_hour < 0
+        || dose_rate_mGy_per_hour > RAD_SENSE_MAX_DOSE_RATE)
     {
         return RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT;
     }
 
-    // Negative elapsed time does not make sense.
-    if (!isfinite(elapsed_seconds) || elapsed_seconds < 0)
+    // Elapsed time outside allowed value range.
+    if (!isfinite(elapsed_seconds)
+        || elapsed_seconds < 0
+        || elapsed_seconds > RAD_SENSE_MAX_TIME)
     {
         return RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT;
     }
 
-    // NULL pointers are evil.
-    // And a negative accumulated dose makes no sense.
+    // Accumulated dose validation, non-NULL, finite, non-negative.
     if (accumulated_dose_mGy == NULL
         || !isfinite(*accumulated_dose_mGy)
-        || *accumulated_dose_mGy < 0)
+        || *accumulated_dose_mGy < 0
+        || *accumulated_dose_mGy > RAD_SENSE_MAX_DOSE)
     {
         return RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT;
     }
 
-    if (dose_rate_mGy_per_hour > elapsed_seconds)
-    {
-        dose_increment_mGy = elapsed_seconds / 3600. * dose_rate_mGy_per_hour;
-    }
-    else
-    {
-        dose_increment_mGy = dose_rate_mGy_per_hour / 3600. * elapsed_seconds;
-    }
+    dose_increment_mGy = elapsed_seconds / 3600. * dose_rate_mGy_per_hour;
     updated_accumulated_dose_mGy = *accumulated_dose_mGy + dose_increment_mGy;
 
-    // This also catches overflows in the dose_increment_mGy computation.
+    if (updated_accumulated_dose_mGy > RAD_SENSE_MAX_DOSE)
+    {
+        return RAD_SENSE_DOSE_UPDATE_DOSE_LIMIT_EXCEEDED;
+    }
+
+    // This overflow is unlikely to happen, unless someone changes the value range for the inputs.
     if (!isfinite(updated_accumulated_dose_mGy))
     {
         return RAD_SENSE_DOSE_UPDATE_OVERFLOW;

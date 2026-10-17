@@ -23,56 +23,66 @@ int main(void)
     // Invalid argument variants: either value negative, not finite, NULL (where applicable)
     status = rad_sense_dose_update(INFINITY, 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     status = rad_sense_dose_update(NAN, 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     status = rad_sense_dose_update(-5., 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
+
+    status = rad_sense_dose_update(RAD_SENSE_MAX_DOSE_RATE + 1, 2., &accumulated_dose_mGy);
+    assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     status = rad_sense_dose_update(3600., INFINITY, &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     status = rad_sense_dose_update(3600., NAN, &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     status = rad_sense_dose_update(3600., -5., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
+
+    status = rad_sense_dose_update(3600., RAD_SENSE_MAX_TIME + 1, &accumulated_dose_mGy);
+    assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     status = rad_sense_dose_update(3600., 2., NULL);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == 4.); // Accumulated dose unchanged
 
     accumulated_dose_mGy = -5.;
     status = rad_sense_dose_update(3600., 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == -5.); // Accumulated dose unchanged
 
     accumulated_dose_mGy = INFINITY;
     status = rad_sense_dose_update(3600., 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(isinf(accumulated_dose_mGy)); // Accumulated dose unchanged
 
     accumulated_dose_mGy = NAN;
     status = rad_sense_dose_update(3600., 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
-    accumulated_dose_mGy = 0;
+    assert(isnan(accumulated_dose_mGy)); // Accumulated dose unchanged
 
-    // Overflow produced by a large dose (DBL_MAX)
-    status = rad_sense_dose_update(DBL_MAX, 3601., &accumulated_dose_mGy);
-    assert(status == RAD_SENSE_DOSE_UPDATE_OVERFLOW);
+    accumulated_dose_mGy = RAD_SENSE_MAX_DOSE + 1;
+    status = rad_sense_dose_update(3600., 2., &accumulated_dose_mGy);
+    assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
+    assert(accumulated_dose_mGy == RAD_SENSE_MAX_DOSE + 1); // Accumulated dose unchanged
 
-    // Overflow produced by a large exposure time (DBL_MAX)
-    status = rad_sense_dose_update(3601., DBL_MAX, &accumulated_dose_mGy);
-    assert(status == RAD_SENSE_DOSE_UPDATE_OVERFLOW);
+    // Overflow because the input accumulated dose is alread at the limit
+    accumulated_dose_mGy = RAD_SENSE_MAX_DOSE - 1;
+    status = rad_sense_dose_update(3600., 2., &accumulated_dose_mGy);
+    assert(status == RAD_SENSE_DOSE_UPDATE_DOSE_LIMIT_EXCEEDED);
+    assert(accumulated_dose_mGy == RAD_SENSE_MAX_DOSE - 1); // Accumulated dose unchanged
 
-    // If 1 mGy/s (3600 mGy/h) is exposed for DBL_MAX s, it should not produce an overflow
-    status = rad_sense_dose_update(3600., DBL_MAX, &accumulated_dose_mGy);
-    assert(status == RAD_SENSE_DOSE_UPDATE_SUCCESS);
-    assert(accumulated_dose_mGy == DBL_MAX);
-    accumulated_dose_mGy = 0;
-
-    // If DBL_MAX mGy/h is exposed for 1 h (3600 s), it should not produce an overflow
-    status = rad_sense_dose_update(DBL_MAX, 3600., &accumulated_dose_mGy);
-    assert(status == RAD_SENSE_DOSE_UPDATE_SUCCESS);
-    assert(accumulated_dose_mGy == DBL_MAX);
     accumulated_dose_mGy = 0;
 
     return 0;
