@@ -20,6 +20,16 @@ int main(void)
     assert(status == RAD_SENSE_DOSE_UPDATE_SUCCESS);
     assert(accumulated_dose_mGy == 4.);
 
+    // 0 dose rate shouldn't update the accumulated dose
+    status = rad_sense_dose_update(0., 2., &accumulated_dose_mGy);
+    assert(status == RAD_SENSE_DOSE_UPDATE_SUCCESS);
+    assert(accumulated_dose_mGy == 4.);
+
+    // 0 time shouldn't update the accumulated dose
+    status = rad_sense_dose_update(3600., 0., &accumulated_dose_mGy);
+    assert(status == RAD_SENSE_DOSE_UPDATE_SUCCESS);
+    assert(accumulated_dose_mGy == 4.);
+
     // Invalid argument variants: either value negative, not finite, NULL (where applicable)
     status = rad_sense_dose_update(INFINITY, 2., &accumulated_dose_mGy);
     assert(status == RAD_SENSE_DOSE_UPDATE_INVALID_ARGUMENT);
