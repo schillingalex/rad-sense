@@ -22,6 +22,9 @@ typedef enum
 
 /**
  * Adds dose accumulated over an elapsed interval to a running tally.
+ * 
+ * If the given elapsed_seconds is a very small value > 0, it is possible that the change rounds off to 0,
+ * leaving the accumulated dose unchanged. Make sure to call this function in sensible intervals.
  *
  * @param dose_rate_mGy_per_hour Radiation dose rate (mGy/h), non-negative, <= RAD_SENSE_MAX_DOSE_RATE.
  * @param elapsed_seconds        Elapsed time (s), non-negative, <= RAD_SENSE_MAX_TIME.
