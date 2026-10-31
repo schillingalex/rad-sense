@@ -21,5 +21,6 @@ typedef struct
 } RAD_SENSE_AppData_t;
 
 void RAD_SENSE_AppMain(void);
+int32 RAD_SENSE_AppInit(void);
 
 #endif /* RAD_SENSE_APP_H */
